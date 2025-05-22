@@ -18,15 +18,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class UserIsOwnerMixin(UserPassesTestMixin):
     def test_func(self):
         if self.request.user.is_manager():
             return True
         obj = self.get_object()
-        return obj.owner == self.request.user if hasattr(obj, 'owner') else False
+        return obj.owner == self.request.user if hasattr(
+            obj, 'owner') else False
 
     def handle_no_permission(self):
-        messages.error(self.request, "У вас нет прав для выполнения этого действия.")
+        messages.error(
+            self.request,
+            "У вас нет прав для выполнения этого действия.")
         return redirect('mailing:home')
 
 
@@ -69,9 +73,10 @@ class MailingDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     success_url = reverse_lazy('mailing:mailing_list')
 
 
-class RecipientListView(LoginRequiredMixin, ListView):
+class RecipientListView(ListView):
     model = Recipient
     template_name = 'mailing/recipient_list.html'
+    context_object_name = 'recipient_list'
 
     def get_queryset(self):
         if self.request.user.is_manager():
@@ -147,8 +152,15 @@ class MessageDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     success_url = reverse_lazy('mailing:message_list')
 
 
-class MailingHomeView(LoginRequiredMixin, TemplateView):
+class MailingHomeView(TemplateView):
     template_name = 'mailing/home.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_mailings'] = Mailing.objects.count()
+        context['active_mailings'] = Mailing.objects.filter(status='Запущена').count()
+        context['unique_recipients'] = Recipient.objects.distinct().count()
+        return context
 
 
 class SendMailingView(LoginRequiredMixin, UserIsOwnerMixin, View):
@@ -169,8 +181,10 @@ def mailing_statistics_list(request):
     if request.user.is_manager():
         statistics = MailingStatistics.objects.all().order_by("-sent_at")
     else:
-        statistics = MailingStatistics.objects.filter(mailing__owner=request.user).order_by("-sent_at")
-    return render(request, "mailing/statistics_list.html", {"statistics": statistics})
+        statistics = MailingStatistics.objects.filter(
+            mailing__owner=request.user).order_by("-sent_at")
+    return render(request, "mailing/statistics_list.html",
+                  {"statistics": statistics})
 
 
 @cache_page(300)  # Кешируем на 5 минут
@@ -179,7 +193,9 @@ def mailing_statistics_detail(request, mailing_id):
         return redirect('users:login')
     mailing = get_object_or_404(Mailing, id=mailing_id)
     if not request.user.is_manager() and mailing.owner != request.user:
-        messages.error(request, "У вас нет прав для просмотра этой статистики.")
+        messages.error(
+            request,
+            "У вас нет прав для просмотра этой статистики.")
         return redirect('mailing:mailing_list')
     statistics = MailingStatistics.objects.filter(mailing=mailing)
     attempts = DeliveryAttempt.objects.filter(mailing=mailing)

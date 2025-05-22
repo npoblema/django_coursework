@@ -67,9 +67,11 @@ class UserListView(LoginRequiredMixin, UserPassesTestMixin, ListView):
     def test_func(self):
         return self.request.user.is_manager()
 
-    def handle_no_permission(self):
-        messages.error(self.request, "У вас нет прав для просмотра списка пользователей.")
-        return redirect('mailing:home')
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['active_users_count'] = CustomUser.objects.filter(
+            is_active=True).count()
+        return context
 
 
 @login_required
@@ -87,7 +89,9 @@ def block_user(request, user_id):
 @login_required
 def unblock_user(request, user_id):
     if not request.user.is_manager():
-        messages.error(request, "У вас нет прав для разблокировки пользователей.")
+        messages.error(
+            request,
+            "У вас нет прав для разблокировки пользователей.")
         return redirect('mailing:home')
     user = get_object_or_404(CustomUser, id=user_id)
     user.is_active = True

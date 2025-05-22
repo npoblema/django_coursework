@@ -9,7 +9,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security settings
-SECRET_KEY = "django-insecure-wapubouwy(6458b_!!cm*=bo26bq*#7%$u!dtu+a$_m2yoyhti"
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-wapubouwy(6458b_!!cm*=bo26bq*#7%$u!dtu+a$_m2yoyhti")
 DEBUG = True
 ALLOWED_HOSTS = []
 
@@ -23,7 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'mailing.apps.MailingConfig',
     'users.apps.UsersConfig',
-    'allauth',  # Убедитесь, что allauth подключен
+    'allauth',
     'allauth.account',
     'allauth.socialaccount',
 ]
@@ -36,7 +36,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "allauth.account.middleware.AccountMiddleware",  # Убедитесь, что middleware соответствует подключенным приложениям
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -44,7 +44,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # HTML-шаблоны только в корневой templates
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -62,7 +62,7 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Database
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv("NAME"),
         'USER': os.getenv("USER"),
         'PASSWORD': os.getenv("PASSWORD"),
@@ -105,6 +105,7 @@ LOGGING = {
 # Static files
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -118,8 +119,8 @@ EMAIL_HOST = os.getenv('EMAIL_HOST')
 EMAIL_PORT = os.getenv('EMAIL_PORT')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-EMAIL_USE_TLS = False
-EMAIL_USE_SSL = True
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
@@ -131,8 +132,7 @@ LOGOUT_REDIRECT_URL = 'users:home'
 # Allauth settings
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_LOGIN_METHODS = ['email']
+ACCOUNT_LOGIN_METHODS = {'email'}
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
@@ -142,8 +142,15 @@ ACCOUNT_FORMS = {
 }
 
 # Password reset
-PASSWORD_RESET_TIMEOUT_DAYS = 1
+PASSWORD_RESET_TIMEOUT = 86400  # 1 день в секундах
 
-# Static files storage
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
-STATICFILES_CACHE_TIMEOUT = 86400  # 24 hours
+# Caching with Redis
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f'redis://{os.getenv("REDIS_HOST")}:{os.getenv("REDIS_PORT")}/{os.getenv("REDIS_DB")}',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}

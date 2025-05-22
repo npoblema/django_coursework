@@ -7,19 +7,29 @@ from .models import Mailing, MailingStatistics, send_mailing
 
 @admin.register(Mailing)
 class MailingAdmin(admin.ModelAdmin):
-    list_display = ('subject', 'status', 'start_datetime', 'end_datetime', 'send_button')
+    list_display = (
+        'subject',
+        'status',
+        'start_datetime',
+        'end_datetime',
+        'send_button')
     list_filter = ('status',)
     actions = ['send_mailing']
 
     def send_button(self, obj):
-        return format_html('<a class="button" href="{}">Отправить</a>', f'/admin/mailing/{obj.id}/send/')
+        return format_html(
+            '<a class="button" href="{}">Отправить</a>', f'/admin/mailing/{obj.id}/send/')
 
     send_button.short_description = "Действия"
 
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path('<pk>/send/', self.admin_site.admin_view(self.send_mailing_view), name='mailing-send'),
+            path(
+                '<pk>/send/',
+                self.admin_site.admin_view(
+                    self.send_mailing_view),
+                name='mailing-send'),
         ]
         return custom_urls + urls
 

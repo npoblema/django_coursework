@@ -1,0 +1,15 @@
+{% extends 'mailing/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Список получателей</h1>
+    <ul class="list-group">
+        {% for recipient in recipient_list %}
+        <li class="list-group-item">{{ recipient.email }}</li>
+        {% empty %}
+        <li class="list-group-item">Получатели отсутствуют.</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'mailing:recipient_create' %}" class="btn btn-primary mt-3">Добавить получателя</a>
+</div>
+{% endblock %}

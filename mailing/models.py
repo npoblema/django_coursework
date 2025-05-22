@@ -6,8 +6,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class MailingStatistics(models.Model):
-    mailing = models.ForeignKey("Mailing", on_delete=models.CASCADE, related_name="statistics")
+    mailing = models.ForeignKey(
+        "Mailing",
+        on_delete=models.CASCADE,
+        related_name="statistics")
     sent_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=20, choices=[
         ("success", "Успешно"),
@@ -36,7 +40,11 @@ class Recipient(models.Model):
     email = models.EmailField(unique=True, verbose_name='Email')
     full_name = models.CharField(max_length=100, verbose_name='Name')
     comment = models.TextField(max_length=100, verbose_name='Description')
-    owner = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, null=True, blank=True)  # Владелец получателя
+    owner = models.ForeignKey(
+        'users.CustomUser',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True)  # Владелец получателя
 
     class Meta:
         verbose_name = 'Получатель'
@@ -50,7 +58,11 @@ class Message(models.Model):
     subject = models.CharField("Тема", max_length=255)
     body = models.TextField("Тело сообщения")
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
-    owner = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, null=True, blank=True)  # Владелец сообщения
+    owner = models.ForeignKey(
+        'users.CustomUser',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True)  # Владелец сообщения
 
     def __str__(self):
         return self.subject
@@ -76,10 +88,17 @@ class Mailing(models.Model):
     subject = models.CharField(max_length=255, blank=True, null=True)
     start_datetime = models.DateTimeField()
     end_datetime = models.DateTimeField()
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='created')
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='created')
     message = models.ForeignKey('Message', on_delete=models.CASCADE)
     recipients = models.ManyToManyField('Recipient')
-    owner = models.ForeignKey('users.CustomUser', on_delete=models.CASCADE, null=True, blank=True)  # Владелец рассылки
+    owner = models.ForeignKey(
+        'users.CustomUser',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True)  # Владелец рассылки
 
     def get_recipients(self):
         return Client.objects.all()
@@ -136,10 +155,12 @@ def send_mailing(mailing):
                 fail_silently=False,
             )
             logger.info(f"Успешно отправлено на {recipient.email}")
-            DeliveryAttempt.create_attempt(mailing, recipient, 'success', 'Email sent successfully')
+            DeliveryAttempt.create_attempt(
+                mailing, recipient, 'success', 'Email sent successfully')
         except Exception as e:
             logger.error(f"Ошибка для {recipient.email}: {str(e)}")
-            DeliveryAttempt.create_attempt(mailing, recipient, 'failed', str(e))
+            DeliveryAttempt.create_attempt(
+                mailing, recipient, 'failed', str(e))
 
     mailing.complete_sending()
     mailing.update_statistics()
@@ -170,8 +191,12 @@ class DeliveryAttempt(models.Model):
                 server_response=response
             )
             attempt.save()
-            logger.info(f"Успешно создана запись DeliveryAttempt с ID: {attempt.id}")
+            logger.info(
+                f"Успешно создана запись DeliveryAttempt с ID: {
+                    attempt.id}")
             return attempt
         except Exception as e:
-            logger.error(f"Ошибка при создании записи DeliveryAttempt: {str(e)}")
+            logger.error(
+                f"Ошибка при создании записи DeliveryAttempt: {
+                    str(e)}")
             raise

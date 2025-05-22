@@ -1,0 +1,7 @@
+[flake8]
+max-line-length = 120
+ignore = F401, E501, F841
+exclude = migrations/, __pycache__, *.env, *.pyc
+
+[flake8:mailing/views.py]
+ignore = E501
