@@ -1,8 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView, PasswordResetView, PasswordResetDoneView, \
     PasswordResetConfirmView, PasswordResetCompleteView
-from django.contrib.auth import logout
 from django.urls import reverse_lazy
+from django.views.generic import DetailView
+
 from .forms import CustomSignupForm
 from django.views.generic.edit import CreateView
 from django.views.generic.base import TemplateView
@@ -98,3 +99,29 @@ def unblock_user(request, user_id):
     user.save()
     messages.success(request, f"Пользователь {user.email} разблокирован.")
     return redirect('users:user_list')
+
+
+class UserProfileView(LoginRequiredMixin, DetailView):
+    model = CustomUser
+    template_name = 'users/profile.html'
+    context_object_name = 'user'
+
+    def get_object(self):
+        return self.request.user
+
+from .models import CustomUser
+
+
+class UserHomeView(TemplateView):
+    template_name = 'users/home.html'
+
+
+class UserLoginView(LoginView):
+    template_name = 'users/login.html'
+
+
+class UserSignupView(CreateView):
+    model = CustomUser
+    form_class = CustomSignupForm
+    template_name = 'users/signup.html'
+    success_url = reverse_lazy('users:login')

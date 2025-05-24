@@ -1,0 +1,11 @@
+{% extends 'mailing/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Профиль пользователя</h1>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Имя:</strong> {{ user.first_name }}</p>
+    <p><strong>Фамилия:</strong> {{ user.last_name }}</p>
+    <a href="{% url 'users:profile_edit' %}" class="btn btn-primary">Редактировать профиль</a>
+</div>
+{% endblock %}

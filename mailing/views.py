@@ -75,7 +75,7 @@ class MailingDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
 
 class RecipientListView(ListView):
     model = Recipient
-    template_name = 'mailing/recipient_list.html'
+    template_name = 'recipient_list.html'
     context_object_name = 'recipient_list'
 
     def get_queryset(self):
@@ -89,10 +89,10 @@ class RecipientDetailView(LoginRequiredMixin, UserIsOwnerMixin, DetailView):
     template_name = 'mailing/recipient_detail.html'
 
 
-class RecipientCreateView(LoginRequiredMixin, CreateView):
+class RecipientCreateView(CreateView):
     model = Recipient
     form_class = RecipientForm
-    template_name = 'mailing/recipient_form.html'
+    template_name = 'recipient_form.html'
     success_url = reverse_lazy('mailing:recipient_list')
 
     def form_valid(self, form):
