@@ -1,20 +1,21 @@
 from django.views.generic.base import TemplateView
-from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic.edit import UpdateView, DeleteView
 from django.views import View
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
-# Исправляем импорт cache_page
+from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.cache import cache_page
 from .models import Recipient, Message, Mailing, DeliveryAttempt, MailingStatistics, send_mailing
 from .forms import RecipientForm, MessageForm, MailingForm
-from django.urls import reverse_lazy
-from django.http import JsonResponse
-import os
 from dotenv import load_dotenv
+from django.views.generic import CreateView
+from django.urls import reverse_lazy
+from users.forms import CustomSignupForm, CustomUser
+from django.contrib.auth import login
 
 load_dotenv()
 
@@ -163,6 +164,12 @@ class MailingHomeView(TemplateView):
         return context
 
 
+class RecipientListView(LoginRequiredMixin, ListView):
+    model = Recipient
+    template_name = 'recipient_list.html'
+    context_object_name = 'recipient_list'
+
+
 class SendMailingView(LoginRequiredMixin, UserIsOwnerMixin, View):
     def post(self, request, pk):
         mailing = get_object_or_404(Mailing, pk=pk)
@@ -216,3 +223,16 @@ def disable_mailing(request, mailing_id):
     mailing.save()
     messages.success(request, f"Рассылка {mailing.subject} отключена.")
     return redirect('mailing:mailing_list')
+
+
+class UserSignupView(CreateView):
+    model = CustomUser
+    form_class = CustomSignupForm
+    template_name = 'users/signup.html'
+    success_url = reverse_lazy('users:login')  # Редирект на страницу логина
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        user = form.save()
+        login(self.request, user)  # Автоматический вход после регистрации
+        return response
